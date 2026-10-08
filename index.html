@@ -1250,32 +1250,23 @@
           <div class="mj-auth" id="mjAuth">
             <div class="mj-auth-badge" aria-hidden="true">✉</div>
             <h3>Bienvenido a Mensajes</h3>
-            <p class="mj-auth-lead">Crea tu cuenta o entra para conversar con la comunidad.</p>
+            <p class="mj-auth-lead">Entra con tu apodo, sin usar correo electrónico.</p>
             <div class="mj-tabs" role="tablist" aria-label="Cuenta de mensajes">
               <button type="button" role="tab" aria-selected="true" id="mjLoginTab">Iniciar sesión</button>
               <button type="button" role="tab" aria-selected="false" id="mjSignupTab">Crear cuenta</button>
             </div>
             <form id="mjLoginForm">
-              <div class="mj-field"><label for="mjLoginEmail">Correo electrónico</label><input type="email" id="mjLoginEmail" autocomplete="email" placeholder="tu@correo.com" required></div>
+              <div class="mj-field"><label for="mjLoginNickname">Tu apodo</label><input type="text" id="mjLoginNickname" autocomplete="username" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="ejemplo_usuario" required></div>
               <div class="mj-field"><label for="mjLoginPassword">Contraseña</label><input type="password" id="mjLoginPassword" autocomplete="current-password" required></div>
               <button class="mj-primary" type="submit">Entrar a mis mensajes</button>
-              <div class="mj-auth-links"><button class="mj-link" type="button" id="mjForgot">¿Olvidaste tu contraseña?</button></div>
+              <p style="font-size:.78rem;color:#73877d;text-align:center;margin:12px 0 0">Guarda bien tu contraseña: sin correo no podrás recuperarla automáticamente.</p>
             </form>
             <form id="mjSignupForm" hidden>
               <div class="mj-field"><label for="mjSignupName">Nombre visible</label><input id="mjSignupName" maxlength="40" minlength="2" autocomplete="nickname" placeholder="¿Cómo quieres que te llamen?" required></div>
               <div class="mj-field"><label for="mjSignupUsername">Nombre de usuario</label><input id="mjSignupUsername" pattern="[A-Za-z0-9_]{3,24}" maxlength="24" autocomplete="off" placeholder="ejemplo_usuario" required></div>
-              <div class="mj-field"><label for="mjSignupEmail">Correo electrónico</label><input id="mjSignupEmail" type="email" autocomplete="email" placeholder="tu@correo.com" required></div>
-              <div class="mj-field"><label for="mjSignupPassword">Contraseña</label><input id="mjSignupPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Al menos 6 caracteres" required></div>
+              
+              <div class="mj-field"><label for="mjSignupPassword">Contraseña</label><input id="mjSignupPassword" type="password" minlength="10" autocomplete="new-password" placeholder="Al menos 6 caracteres" required></div>
               <button class="mj-primary" type="submit">Crear mi cuenta</button>
-            </form>
-            <form id="mjResetForm" hidden>
-              <div class="mj-field"><label for="mjResetEmail">Tu correo electrónico</label><input id="mjResetEmail" type="email" required></div>
-              <button class="mj-primary" type="submit">Enviar enlace de recuperación</button>
-              <div class="mj-auth-links"><button type="button" class="mj-link" id="mjBackLogin">Volver a iniciar sesión</button></div>
-            </form>
-            <form id="mjNewPasswordForm" hidden>
-              <div class="mj-field"><label for="mjNewPassword">Contraseña nueva</label><input id="mjNewPassword" type="password" minlength="6" autocomplete="new-password" required></div>
-              <button class="mj-primary" type="submit">Guardar contraseña nueva</button>
             </form>
             <p class="mj-feedback" id="mjAuthFeedback" aria-live="polite"></p>
             <p style="font-size:.76rem;color:#8b9a91;text-align:center;line-height:1.6;margin:18px 0 0">No compartas contraseñas ni datos personales. Utiliza nombres de usuario sin información privada.</p>
@@ -1646,6 +1637,6 @@
     }());
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script defer src="./mensajes.js?v=1"></script>
+  <script defer src="./mensajes.js?v=2"></script>
 </body>
 </html>
