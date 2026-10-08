@@ -80,3 +80,15 @@
 @media(max-width:850px) { .mj-chat-section { padding:54px 0 70px; } .mj-app { grid-template-columns:270px minmax(0,1fr); } .mj-side-head { padding:18px 13px; } .mj-people { padding:0 5px 12px; } }
 @media(max-width:650px) { .mj-shell { border-radius:15px; } .mj-app { display:block; height:630px; min-height:0; position:relative; } .mj-side { height:100%; width:100%; } .mj-thread { position:absolute; inset:0; background:white; display:none; } .mj-app.mj-show-thread .mj-side { display:none; } .mj-app.mj-show-thread .mj-thread { display:flex; } .mj-back { display:inline-flex; border:0; background:#e8f4eb; color:#21684b; border-radius:9px; padding:9px 11px; } .mj-thread-head { padding:13px 12px; gap:9px; } .mj-thread-actions button { padding:6px; } .mj-messages { padding:17px 12px; } .mj-msg { max-width:86%; } .mj-compose { padding:12px 10px 8px; gap:7px; } .mj-compose .mj-primary { padding:10px 12px; } .mj-composer-help { padding:0 12px 10px; } .mj-auth { padding:29px 20px 33px; } }
 @media(prefers-reduced-motion:reduce) { .mj-chat-section *, .mj-chat-section *::before, .mj-chat-section *::after { scroll-behavior:auto!important; transition:none!important; } }
+
+.mj-chat-section .mj-app {--mj-accent:#176c4b}
+.mj-chat-section .mj-app .mj-primary,.mj-chat-section .mj-msg.is-mine .mj-bubble {background:var(--mj-accent);border-color:var(--mj-accent)}
+.mj-chat-section .mj-app .mj-person.is-selected {box-shadow:inset 3px 0 var(--mj-accent)}
+.mj-avatar {overflow:hidden}
+.mj-avatar img {height:100%;width:100%;object-fit:cover;display:block}
+.mj-profile-panel {padding:13px 20px 16px;background:#fff;border-bottom:1px solid #e2eee5}
+.mj-profile-panel label {display:block;color:#335d46;font-size:.82rem;font-weight:750;margin-bottom:8px}
+.mj-profile-panel .mj-color-options {display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}
+.mj-profile-panel input[type=color] {height:38px;width:53px;cursor:pointer;background:transparent;border:0;padding:0}
+.mj-profile-panel input[type=file] {font-size:.78rem;max-width:100%;color:#53745f}
+.mj-profile-panel p {font-size:.73rem;color:#879a8c;line-height:1.5;margin:8px 0 0}
