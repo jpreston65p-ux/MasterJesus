@@ -92,3 +92,17 @@
 .mj-profile-panel input[type=color] {height:38px;width:53px;cursor:pointer;background:transparent;border:0;padding:0}
 .mj-profile-panel input[type=file] {font-size:.78rem;max-width:100%;color:#53745f}
 .mj-profile-panel p {font-size:.73rem;color:#879a8c;line-height:1.5;margin:8px 0 0}
+
+
+.mj-footer-creator{display:block;font-weight:800;color:#e4c179;font-size:.83rem;margin:5px 0 3px;letter-spacing:.025em}
+.mj-chat-section .mj-rename{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.mj-chat-section .mj-rename input{min-width:0;flex:1;padding:10px 12px;border-radius:10px;border:1px solid #cfdfd1;outline:none;font:inherit}
+.mj-chat-section .mj-rename input:focus{border-color:#1c8059;box-shadow:0 0 0 3px #1c80591d}
+.mj-unread-badge{min-width:24px;height:24px;border-radius:30px;display:grid;place-items:center;background:#176c4b;color:#fff;font-size:.73rem;font-weight:900;padding:0 5px}
+.mj-chat-section .mj-profile-panel{box-shadow:0 7px 18px #17432d09}
+.mj-chat-section .mj-thread-head{background:linear-gradient(100deg,#fff,#f6faf7)}
+.mj-chat-section .mj-side{background:linear-gradient(180deg,#fbfdfb,#f1f7f1)}
+.mj-chat-section .mj-person{transition:background .17s,transform .17s}
+.mj-chat-section .mj-person:hover{transform:translateX(2px)}
+.mj-chat-section .mj-bubble{font-size:.94rem;line-height:1.6}
+.mj-chat-section .mj-muted-btn:focus-visible,.mj-chat-section .mj-primary:focus-visible{outline:3px solid #d6a638;outline-offset:2px}
