@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="mj-chat-version" content="8">
+  <meta name="mj-chat-version" content="9">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Mi Maestro Jesús: educación cristiana, valores y aprendizaje al servicio de la comunidad.">
   <meta name="theme-color" content="#0c4b3d">
@@ -1080,7 +1080,7 @@
   </style>
 
 
-  <link rel="stylesheet" href="./mensajes.css?v=8">
+  <link rel="stylesheet" href="./mensajes.css?v=9">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -1297,8 +1297,15 @@
               <p class="mj-status" id="mjStatus" aria-live="polite"></p>
               <form class="mj-compose" id="mjCompose" hidden>
                 <label for="mjText" class="skip-link">Nuevo mensaje</label>
-                <textarea id="mjText" maxlength="2000" rows="1" placeholder="Escribe un mensaje…" required></textarea>
-                <button type="button" class="mj-muted-btn mj-mic" id="mjVoiceButton" title="Grabar un audio de hasta 60 segundos" aria-label="Grabar mensaje de voz">🎙️</button><span id="mjVoiceTimer" hidden aria-live="polite"></span><button type="button" class="mj-muted-btn mj-voice-cancel" id="mjVoiceCancel" hidden>Cancelar</button><button type="submit" class="mj-primary" id="mjSend">Enviar ➤</button>
+                <div class="mj-compose-input"><textarea id="mjText" maxlength="2000" rows="2" placeholder="Escribe un mensaje…" required></textarea></div>
+                <div class="mj-compose-toolbar">
+                  <div class="mj-compose-voice">
+                    <button type="button" class="mj-muted-btn mj-mic" id="mjVoiceButton" title="Grabar audio de hasta 60 segundos" aria-label="Grabar mensaje de voz">🎙️</button>
+                    <span id="mjVoiceTimer" hidden aria-live="polite"></span>
+                    <button type="button" class="mj-muted-btn mj-voice-cancel" id="mjVoiceCancel" hidden>Cancelar grabación</button>
+                  </div>
+                  <button type="submit" class="mj-primary" id="mjSend">Enviar ➤</button>
+                </div>
               </form>
               <small class="mj-composer-help" id="mjSafetyNote" hidden>Enter para enviar · Shift + Enter para nueva línea · 🎙️ para mensajes de voz de hasta 60 segundos.</small>
             </div>
@@ -1469,6 +1476,6 @@
     }());
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script defer src="./mensajes.js?v=8"></script>
+  <script defer src="./mensajes.js?v=9"></script>
 </body>
 </html>
