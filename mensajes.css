@@ -125,3 +125,10 @@
 .mj-chat-section .mj-voice-bubble audio{max-width:min(230px,48vw);height:38px}
 .mj-chat-section .mj-voice-bubble audio[hidden]{display:none}
 @media(max-width:650px){.mj-chat-section .mj-compose{flex-wrap:wrap}.mj-chat-section .mj-compose textarea{flex-basis:100%}.mj-chat-section .mj-mic{flex:0 0 auto}}
+
+
+.mj-chat-section .mj-updates{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:21px auto 24px;max-width:830px}
+.mj-chat-section .mj-updates span{border-radius:30px;background:#fff;border:1px solid #cee1d4;color:#275c47;box-shadow:0 3px 12px #18452d0c;padding:8px 13px;font-size:.82rem;font-weight:750}
+.mj-chat-section .mj-voice-cancel{color:#a53c36;border-color:#f2cfc8;font-weight:750}
+.mj-chat-section .mj-shape-select{font-weight:750;cursor:pointer}
+.mj-chat-section .mj-profile-panel label[for="mjBubbleStyle"]{margin-top:13px}
