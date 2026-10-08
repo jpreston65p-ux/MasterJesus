@@ -87,6 +87,7 @@
   }
   async function clearSession() {
     state.me=null; state.profile=null; state.contact=null; state.latest.clear();
+    if(recorder)stopRecording(true);
     state.people=[]; readState.clear();unreadCounts.clear();updateUnreadUI(); state.signedIn=false; state.blocked.clear(); state.blockedBy.clear();
     if(state.channel) { await client.removeChannel(state.channel); state.channel=null; }
     if(state.voiceChannel){await client.removeChannel(state.voiceChannel);state.voiceChannel=null;}
@@ -319,6 +320,7 @@
   $("mjRefreshPeople").addEventListener("click",()=>loadPeople($("mjFind").value));
   $("mjBack").addEventListener("click",()=>chatApp.classList.remove("mj-show-thread"));
   async function selectContact(person) {
+    if(recorder)stopRecording(true);
     state.contact=person; state.loadNumber++;
     chatApp.classList.add("mj-show-thread");
     $("mjPartnerAvatar").replaceChildren(avatar(person));
@@ -342,6 +344,7 @@
     $("mjText").disabled=!!disabled;
     $("mjSend").disabled=!!disabled;
     $("mjVoiceButton").disabled=!!disabled;
+    $("mjVoiceCancel").hidden=!recorder;
     $("mjBlock").textContent=blocked?"Desbloquear":"Bloquear";
     $("mjText").placeholder=blocked?"Has bloqueado a esta persona":blockedBy?
       "Esta persona no puede recibir tus mensajes":"Escribe un mensaje…";
@@ -451,6 +454,7 @@
     const list=Array.from(root.querySelectorAll(".mj-msg")).sort((a,b)=>String(a.dataset.at).localeCompare(String(b.dataset.at)));
     list.forEach(node=>root.append(node));root.scrollTop=root.scrollHeight;
   }
+  $("mjVoiceCancel").addEventListener("click",()=>stopRecording(true));
   $("mjVoiceButton").addEventListener("click",async()=>{
     if(recorder){stopRecording();return;}
     if(!state.contact||!state.me||state.blocked.has(state.contact.id)||state.blockedBy.has(state.contact.id))return;
@@ -470,7 +474,7 @@
         recordStream?.getTracks().forEach(x=>x.stop());recordStream=null;
         const cancelled=active._cancel;
         const seconds=Math.max(1,Math.min(VOICE_MAX_SECONDS,Math.ceil((Date.now()-recordStart)/1000)));
-        recorder=null;$("mjVoiceButton").textContent="🎙";$("mjVoiceTimer").hidden=true;
+        recorder=null;$("mjVoiceButton").textContent="🎙️";$("mjVoiceTimer").hidden=true;$("mjVoiceCancel").hidden=true;
         if(cancelled){recordChunks=[];updateComposer();return;}
         const file=new Blob(recordChunks,{type:mime.split(";")[0]});recordChunks=[];
         if(file.size<100||file.size>VOICE_MAX_BYTES){showChatMessage("El audio debe durar menos de 60 s y pesar menos de 6 MB.",true);updateComposer();return;}
@@ -491,7 +495,7 @@
       };
       active.onerror=()=>{showChatMessage("Error al grabar el audio.",true);stopRecording(true);};
       active.start(250);
-      $("mjVoiceButton").textContent="■";
+      $("mjVoiceButton").textContent="■";$("mjVoiceCancel").hidden=false;
       $("mjVoiceTimer").hidden=false;
       $("mjVoiceTimer").textContent="🔴 0:00";
       recordTimer=setInterval(()=>{
