@@ -17,7 +17,7 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "masterjesus-auth-v1" }
   });
   const state = { me: null, profile: null, contact: null, people: [], latest: new Map(),
-    blocked: new Set(), blockedBy: new Set(), messageIds: new Set(), channel: null, oldestId: null,
+    blocked: new Set(), blockedBy: new Set(), messageIds: new Set(), voiceIds:new Set(), voiceChannel:null, channel: null, oldestId: null,
     loadNumber: 0, signedIn: false, searchId: 0 };
 
   function showAuthMessage(message, error) {
@@ -45,6 +45,7 @@
     const el = document.createElement("span"); el.className = "mj-avatar";
     const p=typeof name==="string" ? {display_name:name} : (name||{});
     el.textContent = initials(p.display_name);
+    if (!p.avatar_url && !p.theme_color) {const palette=["#176c4b","#7655a2","#d8754e","#286ba0","#aa4f85","#b48b2a","#248580","#ae5260"];let hash=0;for(const c of String(p.id||p.display_name||""))hash=(hash*31+c.charCodeAt(0))>>>0;el.style.background=palette[hash%palette.length];}
     if(p.theme_color && /^#[0-9a-f]{6}$/i.test(p.theme_color))el.style.background=p.theme_color;
     if(p.avatar_url && p.avatar_url.startsWith(SUPABASE_URL+"/storage/v1/object/public/mj-avatars/")){const img=document.createElement("img");img.src=p.avatar_url;img.alt="";img.loading="lazy";el.replaceChildren(img);}
     return el;
@@ -88,11 +89,12 @@
     state.me=null; state.profile=null; state.contact=null; state.latest.clear();
     state.people=[]; readState.clear();unreadCounts.clear();updateUnreadUI(); state.signedIn=false; state.blocked.clear(); state.blockedBy.clear();
     if(state.channel) { await client.removeChannel(state.channel); state.channel=null; }
+    if(state.voiceChannel){await client.removeChannel(state.voiceChannel);state.voiceChannel=null;}
     signedOutUI();
   }
   async function ensureProfile(user) {
     const {data: existing,error: readError}=await client.from("mj_profiles")
-      .select("id,username,display_name,avatar_url,theme_color").eq("id",user.id).maybeSingle();
+      .select("id,username,display_name,avatar_url,theme_color,bubble_style").eq("id",user.id).maybeSingle();
     if(readError) throw readError;
     if(existing) return existing;
     const meta=user.user_metadata||{};
@@ -100,11 +102,11 @@
     const username=/^[a-z0-9_]{3,24}$/.test(suggested) ? suggested : "usuario_"+user.id.replace(/-/g,"").slice(0,12);
     const display_name=String(meta.display_name||"").trim().slice(0,40)||"Mi perfil";
     let result=await client.from("mj_profiles").insert({id:user.id,username,display_name})
-      .select("id,username,display_name,avatar_url,theme_color").single();
+      .select("id,username,display_name,avatar_url,theme_color,bubble_style").single();
     if(result.error && result.error.code==="23505") {
       result=await client.from("mj_profiles").insert({
         id:user.id, username:"usuario_"+user.id.replace(/-/g,"").slice(0,12),display_name
-      }).select("id,username,display_name,avatar_url,theme_color").single();
+      }).select("id,username,display_name,avatar_url,theme_color,bubble_style").single();
     }
     if(result.error) throw result.error;
     return result.data;
@@ -122,6 +124,7 @@
       $("mjMeName").textContent=state.profile.display_name;
       $("mjMeHandle").textContent="@"+state.profile.username;
       applyTheme(state.profile.theme_color||"#176c4b");
+      applyBubbleStyle(state.profile.bubble_style||"rounded");
       await Promise.all([loadBlocks(),loadPeople(),refreshReadState()]);
       subscribeToMessages();
       showChatMessage("");
@@ -139,7 +142,7 @@
   }
   $("mjProfileSettings").addEventListener("click",()=>{
     $("mjProfilePanel").hidden=!$("mjProfilePanel").hidden;
-    if(!$("mjProfilePanel").hidden){$("mjMyColor").value=state.profile?.theme_color||"#176c4b";$("mjMyNickname").value=state.profile?.display_name||"";}
+    if(!$("mjProfilePanel").hidden){$("mjMyColor").value=state.profile?.theme_color||"#176c4b";$("mjMyNickname").value=state.profile?.display_name||"";$("mjBubbleStyle").value=state.profile?.bubble_style||"rounded";}
   });
   $("mjMyColor").addEventListener("change",async(e)=>{
     if(!state.me||!state.profile)return;
@@ -148,6 +151,22 @@
     const {error}=await client.from("mj_profiles").update({theme_color:color}).eq("id",state.me);
     if(error){showChatMessage("No se guardó el color: "+explain(error),true);return;}
     state.profile.theme_color=color;applyTheme(color);showChatMessage("Color guardado.");
+  });
+
+  const BUBBLES=["rounded","cloud","comic","pill","glass"];
+  function applyBubbleStyle(style){
+    const chosen=BUBBLES.includes(style)?style:"rounded";
+    chatApp.dataset.bubble=chosen;
+    $("mjBubbleStyle").value=chosen;
+  }
+  $("mjBubbleStyle").addEventListener("change",async e=>{
+    const style=e.target.value;
+    if(!state.me||!BUBBLES.includes(style))return;
+    const {error}=await client.from("mj_profiles").update({bubble_style:style}).eq("id",state.me);
+    if(error){showChatMessage("No se guardó el estilo: "+explain(error),true);return;}
+    state.profile.bubble_style=style;
+    applyBubbleStyle(style);
+    showChatMessage("Estilo de burbujas actualizado.");
   });
   $("mjMyPhoto").addEventListener("change",async(e)=>{
     const file=e.target.files?.[0];if(!file||!state.me||!state.profile)return;
@@ -244,7 +263,7 @@
       const other=row.sender_id===id?row.recipient_id:row.sender_id;
       if(!unique.has(other)){unique.add(other);state.latest.set(other,row);}
     });
-    let query=client.from("mj_profiles").select("id,username,display_name,avatar_url,theme_color").neq("id",id).order("username").limit(80);
+    let query=client.from("mj_profiles").select("id,username,display_name,avatar_url,theme_color,bubble_style").neq("id",id).order("username").limit(80);
     const clean=filter.trim().toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,24);
     if(clean.length>=2)query=query.ilike("username","%"+clean+"%");
     const {data:people,error}=await query;
@@ -252,7 +271,7 @@
     if(error){showChatMessage(explain(error),true);return;}
     const lookup=new Map((people||[]).map(p=>[p.id,p]));
     if(unique.size) {
-      const {data:past}=await client.from("mj_profiles").select("id,username,display_name,avatar_url,theme_color").in("id",[...unique].slice(0,300));
+      const {data:past}=await client.from("mj_profiles").select("id,username,display_name,avatar_url,theme_color,bubble_style").in("id",[...unique].slice(0,300));
       (past||[]).forEach(p=>lookup.set(p.id,p));
     }
     let list=[...lookup.values()];
@@ -310,9 +329,10 @@
     $("mjCompose").hidden=false;
     $("mjSafetyNote").hidden=false;
     $("mjMessages").replaceChildren();
-    state.messageIds.clear();state.oldestId=null;
+    state.messageIds.clear();state.voiceIds.clear();state.oldestId=null;
     renderPeople();updateComposer();
     await loadConversation();
+    await loadVoices(person.id,state.loadNumber);
     await markRead(person.id);
   }
   function updateComposer() {
@@ -321,6 +341,7 @@
     const disabled=!contact||blocked||blockedBy||!state.signedIn;
     $("mjText").disabled=!!disabled;
     $("mjSend").disabled=!!disabled;
+    $("mjVoiceButton").disabled=!!disabled;
     $("mjBlock").textContent=blocked?"Desbloquear":"Bloquear";
     $("mjText").placeholder=blocked?"Has bloqueado a esta persona":blockedBy?
       "Esta persona no puede recibir tus mensajes":"Escribe un mensaje…";
@@ -330,6 +351,7 @@
     const wrap=document.createElement("div");wrap.className="mj-msg"+(mine?" is-mine":"");
     const bubble=document.createElement("div");bubble.className="mj-bubble";bubble.textContent=item.body;
     const time=document.createElement("time");time.dateTime=item.created_at;time.textContent=timeOf(item.created_at);
+    wrap.dataset.at=item.created_at;
     wrap.append(bubble,time);return wrap;
   }
   function emptyThread(message) {
@@ -378,6 +400,107 @@
     if(empty)empty.remove();
     state.messageIds.add(row.id);parent.append(msgNode(row));parent.scrollTop=parent.scrollHeight;
   }
+
+  let recorder=null,recordStream=null,recordChunks=[],recordStart=0,recordTimer=null;
+  const voiceStorage=client.storage.from("mj-voice");
+  const VOICE_MAX_SECONDS=60;
+  const VOICE_MAX_BYTES=6291456;
+  function secondsText(n){const x=Math.max(0,Math.round(n));return Math.floor(x/60)+":"+String(x%60).padStart(2,"0");}
+  function stopRecording(cancel=false){
+    if(!recorder)return;
+    recorder._cancel=cancel;
+    if(recorder.state!=="inactive")recorder.stop();
+  }
+  async function showVoice(item){
+    if(state.voiceIds.has(item.id)||!state.contact)return;
+    const other=state.contact.id;
+    if(!((item.sender_id===state.me&&item.recipient_id===other)||(item.sender_id===other&&item.recipient_id===state.me)))return;
+    state.voiceIds.add(item.id);
+    const wrap=document.createElement("div");
+    wrap.className="mj-msg mj-voice-msg"+(item.sender_id===state.me?" is-mine":"");
+    wrap.dataset.at=item.created_at;
+    const bubble=document.createElement("div");bubble.className="mj-bubble mj-voice-bubble";
+    const play=document.createElement("button");play.type="button";play.className="mj-voice-play";play.textContent="▶";
+    const duration=document.createElement("span");duration.textContent="🎤 "+secondsText(item.duration_seconds);
+    const audio=document.createElement("audio");audio.preload="none";audio.controls=true;audio.hidden=true;
+    play.addEventListener("click",async()=>{
+      if(!audio.src){
+        play.disabled=true;
+        const {data,error}=await voiceStorage.createSignedUrl(item.storage_path,300);
+        play.disabled=false;
+        if(error){showChatMessage("No se pudo abrir el audio: "+explain(error),true);return;}
+        audio.src=data.signedUrl;
+      }
+      audio.hidden=false;play.hidden=true;
+      audio.play().catch(()=>{showChatMessage("Pulsa reproducir en el control de audio.",true);});
+    });
+    bubble.append(play,duration,audio);wrap.append(bubble);
+    const t=document.createElement("time");t.textContent=timeOf(item.created_at);wrap.append(t);
+    $("mjMessages").querySelector(".mj-thread-empty")?.remove();
+    $("mjMessages").append(wrap);
+  }
+  async function loadVoices(peer,ticket){
+    const {data,error}=await client.from("mj_voice_messages")
+      .select("id,sender_id,recipient_id,storage_path,duration_seconds,created_at")
+      .or("and(sender_id.eq."+state.me+",recipient_id.eq."+peer+"),and(sender_id.eq."+peer+",recipient_id.eq."+state.me+")")
+      .order("created_at",{ascending:false}).limit(75);
+    if(error){showChatMessage("No se pudieron cargar los audios: "+explain(error),true);return;}
+    if(ticket!==state.loadNumber||state.contact?.id!==peer)return;
+    for(const item of (data||[]).reverse())await showVoice(item);
+    const root=$("mjMessages");
+    const list=Array.from(root.querySelectorAll(".mj-msg")).sort((a,b)=>String(a.dataset.at).localeCompare(String(b.dataset.at)));
+    list.forEach(node=>root.append(node));root.scrollTop=root.scrollHeight;
+  }
+  $("mjVoiceButton").addEventListener("click",async()=>{
+    if(recorder){stopRecording();return;}
+    if(!state.contact||!state.me||state.blocked.has(state.contact.id)||state.blockedBy.has(state.contact.id))return;
+    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){showChatMessage("Este navegador no permite grabar audio.",true);return;}
+    const formats=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg"];
+    const mime=formats.find(x=>MediaRecorder.isTypeSupported(x));
+    if(!mime){showChatMessage("Tu navegador no ofrece un formato de audio compatible.",true);return;}
+    const recipient=state.contact.id;
+    try{
+      recordStream=await navigator.mediaDevices.getUserMedia({audio:true});
+      recordChunks=[];recordStart=Date.now();
+      recorder=new MediaRecorder(recordStream,{mimeType:mime,audioBitsPerSecond:64000});
+      const active=recorder;
+      active.ondataavailable=e=>{if(e.data?.size)recordChunks.push(e.data);};
+      active.onstop=async()=>{
+        clearInterval(recordTimer);recordTimer=null;
+        recordStream?.getTracks().forEach(x=>x.stop());recordStream=null;
+        const cancelled=active._cancel;
+        const seconds=Math.max(1,Math.min(VOICE_MAX_SECONDS,Math.ceil((Date.now()-recordStart)/1000)));
+        recorder=null;$("mjVoiceButton").textContent="🎙";$("mjVoiceTimer").hidden=true;
+        if(cancelled){recordChunks=[];updateComposer();return;}
+        const file=new Blob(recordChunks,{type:mime.split(";")[0]});recordChunks=[];
+        if(file.size<100||file.size>VOICE_MAX_BYTES){showChatMessage("El audio debe durar menos de 60 s y pesar menos de 6 MB.",true);updateComposer();return;}
+        const ext=mime.includes("webm")?"webm":mime.includes("mp4")?"mp4":"ogg";
+        const path=state.me+"/"+crypto.randomUUID()+"."+ext;
+        showChatMessage("Enviando audio…");
+        try{
+          const {error:uploadError}=await voiceStorage.upload(path,file,{contentType:file.type,upsert:false});
+          if(uploadError)throw uploadError;
+          const {data,error}=await client.from("mj_voice_messages")
+            .insert({sender_id:state.me,recipient_id:recipient,storage_path:path,duration_seconds:seconds})
+            .select("id,sender_id,recipient_id,storage_path,duration_seconds,created_at").single();
+          if(error)throw error;
+          if(state.contact?.id===recipient){await showVoice(data);$("mjMessages").scrollTop=$("mjMessages").scrollHeight;}
+          showChatMessage("Audio enviado.");
+        }catch(error){showChatMessage("No se pudo enviar el audio: "+explain(error),true);}
+        updateComposer();
+      };
+      active.onerror=()=>{showChatMessage("Error al grabar el audio.",true);stopRecording(true);};
+      active.start(250);
+      $("mjVoiceButton").textContent="■";
+      $("mjVoiceTimer").hidden=false;
+      $("mjVoiceTimer").textContent="🔴 0:00";
+      recordTimer=setInterval(()=>{
+        const elapsed=Math.floor((Date.now()-recordStart)/1000);
+        $("mjVoiceTimer").textContent="🔴 "+secondsText(elapsed);
+        if(elapsed>=VOICE_MAX_SECONDS)stopRecording();
+      },300);
+    }catch(error){recordStream?.getTracks().forEach(x=>x.stop());recordStream=null;showChatMessage("No se pudo acceder al micrófono: "+explain(error),true);}
+  });
   $("mjCompose").addEventListener("submit",async(event)=>{
     event.preventDefault();
     const text=$("mjText").value.trim(), other=state.contact,me=state.me;
@@ -430,6 +553,11 @@
   });
   function subscribeToMessages() {
     if(state.channel)client.removeChannel(state.channel);
+    if(state.voiceChannel)client.removeChannel(state.voiceChannel);
+    state.voiceChannel=client.channel("mj-voices-"+state.me).on("postgres_changes",{event:"INSERT",schema:"public",table:"mj_voice_messages"},async payload=>{
+      const v=payload.new;
+      if(v&&(v.sender_id===state.me||v.recipient_id===state.me)){await showVoice(v);if(v.recipient_id===state.me)showChatMessage("Nuevo mensaje de voz.");}
+    }).subscribe();
     state.channel=client.channel("mj-direct-messages-"+state.me)
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"mj_messages"},(payload)=>{
         const row=payload.new;if(!row)return;
