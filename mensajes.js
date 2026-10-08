@@ -54,61 +54,26 @@
     catch (_) { return ""; }
   }
 
-  const NICKNAME_DOMAIN="users.masterjesus.invalid";
-  const REGISTER_ENDPOINT=SUPABASE_URL+"/functions/v1/mj-register-nickname";
-  function setMode(mode) {
-    $("mjLoginTab").setAttribute("aria-selected",String(mode==="login"));
-    $("mjSignupTab").setAttribute("aria-selected",String(mode==="signup"));
-    $("mjLoginForm").hidden=mode!=="login";
-    $("mjSignupForm").hidden=mode!=="signup";
-    showAuthMessage("");
-  }
-  $("mjLoginTab").addEventListener("click",()=>setMode("login"));
-  $("mjSignupTab").addEventListener("click",()=>setMode("signup"));
-  function buttonBusy(form,busy){
-    const btn=form.querySelector('button[type="submit"]');
-    if(btn)btn.disabled=busy;
-  }
-  $("mjLoginForm").addEventListener("submit",async event=>{
+  const GUEST_ENDPOINT=SUPABASE_URL+"/functions/v1/mj-guest-entry";
+  const guestForm=$("mjGuestForm");
+  guestForm.addEventListener("submit",async event=>{
     event.preventDefault();
-    const form=event.currentTarget; buttonBusy(form,true);
-    showAuthMessage("Iniciando sesión…");
+    const nickname=$("mjGuestNickname").value.trim();
+    if(nickname.length<2||nickname.length>40){showAuthMessage("Escribe un apodo de 2 a 40 caracteres.",true);return;}
+    const btn=guestForm.querySelector('button[type="submit"]');btn.disabled=true;
+    showAuthMessage("Preparando tu chat…");
     try{
-      const nickname=$("mjLoginNickname").value.trim().toLowerCase();
-      if(!/^[a-z0-9_]{3,24}$/.test(nickname))throw Error("Escribe un apodo válido.");
-      const password=$("mjLoginPassword").value;
-      const {error}=await client.auth.signInWithPassword({email:nickname+"@"+NICKNAME_DOMAIN,password});
-      if(error)throw Error("Apodo o contraseña incorrectos.");
+      const response=await fetch(GUEST_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY},body:JSON.stringify({nickname})});
+      const data=await response.json().catch(()=>({error:"Error de conexión con el servidor."}));
+      if(!response.ok||!data.email||!data.password)throw Error(data.error||"No se pudo entrar.");
+      const {error}=await client.auth.signInWithPassword({email:data.email,password:data.password});
+      if(error)throw error;
+      guestForm.reset();
       await loadSession();
     }catch(error){showAuthMessage(explain(error),true);}
-    finally{buttonBusy(form,false);}
+    finally{btn.disabled=false;}
   });
-  $("mjSignupForm").addEventListener("submit",async event=>{
-    event.preventDefault(); const form=event.currentTarget;
-    buttonBusy(form,true); showAuthMessage("Creando tu cuenta…");
-    try{
-      const username=$("mjSignupUsername").value.trim().toLowerCase();
-      const display_name=$("mjSignupName").value.trim();
-      const password=$("mjSignupPassword").value;
-      if(!/^[a-z0-9_]{3,24}$/.test(username))throw Error("El apodo debe tener entre 3 y 24 letras, números o guiones bajos.");
-      if(display_name.length<2||display_name.length>40)throw Error("El nombre visible debe tener entre 2 y 40 caracteres.");
-      if(password.length<10||password.length>128)throw Error("Utiliza una contraseña de 10 a 128 caracteres.");
-      const response=await fetch(REGISTER_ENDPOINT,{
-        method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY},
-        body:JSON.stringify({username,display_name,password})
-      });
-      const result=await response.json().catch(()=>({error:"Respuesta inválida del servidor."}));
-      if(!response.ok||!result.ok)throw Error(result.error||"No se pudo crear tu cuenta.");
-      const {error}=await client.auth.signInWithPassword({
-        email:username+"@"+NICKNAME_DOMAIN,password
-      });
-      if(error)throw Error("Cuenta creada. Entra con tu apodo y contraseña.");
-      $("mjSignupPassword").value="";
-      await loadSession();
-    }catch(error){showAuthMessage(explain(error),true);}
-    finally{buttonBusy(form,false);}
-  });
-    $("mjLogout").addEventListener("click", async () => {
+  $("mjLogout").addEventListener("click", async () => {
     try { await client.auth.signOut(); await clearSession(); } catch(error){showChatMessage(explain(error),true);}
   });
   function signedOutUI() {
@@ -393,6 +358,5 @@
       queueMicrotask(()=>loadSession());
     }
   });
-  setMode("login");
   loadSession().catch(error=>showAuthMessage(explain(error),true));
 }());
