@@ -1079,6 +1079,7 @@
   </style>
 
 
+  <link rel="stylesheet" href="./mensajes.css?v=1">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -1102,7 +1103,7 @@
         <a href="#galeria">Galería</a>
         <a href="#nosotros">Sobre nosotros</a>
         <a href="#comentarios">Comentarios</a>
-        <a href="#comentarios">Comentarios</a>
+        <a href="#mensajes">Mensajes</a>
         <a href="#contacto">Contacto</a>
       </nav>
 
@@ -1236,6 +1237,87 @@
       </div>
     </section>
   
+
+    <!-- Mensajería integrada a la página principal: no usa otra página -->
+    <section class="mj-chat-section anchor-target" id="mensajes" aria-labelledby="mjHeading">
+      <div class="container">
+        <div class="mj-intro">
+          <p class="mj-eyebrow">✉ Comunidad · Mensajes privados</p>
+          <h2 id="mjHeading">Conversemos con respeto</h2>
+          <p>Un espacio para conectar, compartir ideas y acompañarnos. Tus conversaciones permanecen guardadas y solo los participantes pueden verlas.</p>
+        </div>
+        <div class="mj-shell">
+          <div class="mj-auth" id="mjAuth">
+            <div class="mj-auth-badge" aria-hidden="true">✉</div>
+            <h3>Bienvenido a Mensajes</h3>
+            <p class="mj-auth-lead">Crea tu cuenta o entra para conversar con la comunidad.</p>
+            <div class="mj-tabs" role="tablist" aria-label="Cuenta de mensajes">
+              <button type="button" role="tab" aria-selected="true" id="mjLoginTab">Iniciar sesión</button>
+              <button type="button" role="tab" aria-selected="false" id="mjSignupTab">Crear cuenta</button>
+            </div>
+            <form id="mjLoginForm">
+              <div class="mj-field"><label for="mjLoginEmail">Correo electrónico</label><input type="email" id="mjLoginEmail" autocomplete="email" placeholder="tu@correo.com" required></div>
+              <div class="mj-field"><label for="mjLoginPassword">Contraseña</label><input type="password" id="mjLoginPassword" autocomplete="current-password" required></div>
+              <button class="mj-primary" type="submit">Entrar a mis mensajes</button>
+              <div class="mj-auth-links"><button class="mj-link" type="button" id="mjForgot">¿Olvidaste tu contraseña?</button></div>
+            </form>
+            <form id="mjSignupForm" hidden>
+              <div class="mj-field"><label for="mjSignupName">Nombre visible</label><input id="mjSignupName" maxlength="40" minlength="2" autocomplete="nickname" placeholder="¿Cómo quieres que te llamen?" required></div>
+              <div class="mj-field"><label for="mjSignupUsername">Nombre de usuario</label><input id="mjSignupUsername" pattern="[A-Za-z0-9_]{3,24}" maxlength="24" autocomplete="off" placeholder="ejemplo_usuario" required></div>
+              <div class="mj-field"><label for="mjSignupEmail">Correo electrónico</label><input id="mjSignupEmail" type="email" autocomplete="email" placeholder="tu@correo.com" required></div>
+              <div class="mj-field"><label for="mjSignupPassword">Contraseña</label><input id="mjSignupPassword" type="password" minlength="6" autocomplete="new-password" placeholder="Al menos 6 caracteres" required></div>
+              <button class="mj-primary" type="submit">Crear mi cuenta</button>
+            </form>
+            <form id="mjResetForm" hidden>
+              <div class="mj-field"><label for="mjResetEmail">Tu correo electrónico</label><input id="mjResetEmail" type="email" required></div>
+              <button class="mj-primary" type="submit">Enviar enlace de recuperación</button>
+              <div class="mj-auth-links"><button type="button" class="mj-link" id="mjBackLogin">Volver a iniciar sesión</button></div>
+            </form>
+            <form id="mjNewPasswordForm" hidden>
+              <div class="mj-field"><label for="mjNewPassword">Contraseña nueva</label><input id="mjNewPassword" type="password" minlength="6" autocomplete="new-password" required></div>
+              <button class="mj-primary" type="submit">Guardar contraseña nueva</button>
+            </form>
+            <p class="mj-feedback" id="mjAuthFeedback" aria-live="polite"></p>
+            <p style="font-size:.76rem;color:#8b9a91;text-align:center;line-height:1.6;margin:18px 0 0">No compartas contraseñas ni datos personales. Utiliza nombres de usuario sin información privada.</p>
+          </div>
+          <div class="mj-app" id="mjApp" hidden>
+            <aside class="mj-side" aria-label="Contactos de mensajes">
+              <div class="mj-side-head">
+                <div class="mj-me"><span id="mjMeAvatar"></span><div class="mj-me-info"><strong id="mjMeName">Mi perfil</strong><small id="mjMeHandle"></small></div>
+                  <button type="button" class="mj-muted-btn" id="mjLogout" title="Cerrar sesión">Salir</button>
+                </div>
+              </div>
+              <div class="mj-side-search"><label for="mjFind" style="display:block;color:#4a6b55;font-weight:700;font-size:.82rem;margin-bottom:8px">Buscar personas</label><input class="mj-find" id="mjFind" type="search" maxlength="40" placeholder="Busca por nombre de usuario…" autocomplete="off"></div>
+              <div class="mj-small-heading">Conversaciones y comunidad <button type="button" class="mj-muted-btn" id="mjRefreshPeople" aria-label="Actualizar conversaciones" title="Actualizar" style="float:right;padding:3px 9px">↻</button></div>
+              <div class="mj-people" id="mjPeople" aria-live="polite"></div>
+              <div class="mj-side-note">Privacidad: solo tú y la persona destinataria podéis leer cada conversación.</div>
+            </aside>
+            <div class="mj-thread">
+              <div class="mj-thread-head">
+                <button type="button" class="mj-back" id="mjBack" aria-label="Volver a contactos">←</button>
+                <span id="mjPartnerAvatar"></span>
+                <div class="mj-thread-copy"><strong id="mjPartnerName">Tus mensajes</strong><small id="mjPartnerHandle">Selecciona a una persona</small></div>
+                <div class="mj-thread-actions" id="mjThreadActions" hidden>
+                  <button type="button" id="mjBlock" title="Bloquear o desbloquear usuario">Bloquear</button>
+                  <button type="button" id="mjReport" title="Reportar usuario">Reportar</button>
+                </div>
+              </div>
+              <div class="mj-messages" id="mjMessages" role="log" aria-live="polite" aria-label="Mensajes de la conversación">
+                <div class="mj-thread-empty" id="mjThreadHint"><div class="mj-welcome-icon" aria-hidden="true">💬</div>Selecciona a alguien de la comunidad para comenzar una conversación.</div>
+              </div>
+              <p class="mj-status" id="mjStatus" aria-live="polite"></p>
+              <form class="mj-compose" id="mjCompose" hidden>
+                <label for="mjText" class="skip-link">Nuevo mensaje</label>
+                <textarea id="mjText" maxlength="2000" rows="1" placeholder="Escribe un mensaje…" required></textarea>
+                <button type="submit" class="mj-primary" id="mjSend">Enviar ➤</button>
+              </form>
+              <small class="mj-composer-help" id="mjSafetyNote" hidden>Enter para enviar · Shift + Enter para una nueva línea · Trata a todos con respeto.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="comments anchor-target" id="comentarios" aria-label="Sección de comentarios">
       <div class="container">
         <p class="section-kicker">Comunidad</p>
@@ -1563,5 +1645,7 @@
       renderComments();
     }());
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+  <script defer src="./mensajes.js?v=1"></script>
 </body>
 </html>
