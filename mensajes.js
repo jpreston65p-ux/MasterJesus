@@ -267,7 +267,7 @@
     $("mjPartnerAvatar").replaceChildren(avatar(person.display_name));
     $("mjPartnerName").textContent=person.display_name;
     $("mjPartnerHandle").textContent="@"+person.username;
-    $("mjThreadHint").hidden=true;
+    if ($("mjThreadHint")) $("mjThreadHint").hidden=true;
     $("mjThreadActions").hidden=false;
     $("mjCompose").hidden=false;
     $("mjSafetyNote").hidden=false;
