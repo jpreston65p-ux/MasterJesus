@@ -106,3 +106,22 @@
 .mj-chat-section .mj-person:hover{transform:translateX(2px)}
 .mj-chat-section .mj-bubble{font-size:.94rem;line-height:1.6}
 .mj-chat-section .mj-muted-btn:focus-visible,.mj-chat-section .mj-primary:focus-visible{outline:3px solid #d6a638;outline-offset:2px}
+
+
+.mj-chat-section .mj-shape-select{width:100%;background:white;color:#204636;border:1px solid #cbdcd0;border-radius:10px;padding:11px 12px;margin:0 0 13px;font:inherit}
+.mj-chat-section .mj-app[data-bubble="rounded"] .mj-bubble{border-radius:18px 18px 18px 5px}
+.mj-chat-section .mj-app[data-bubble="rounded"] .mj-msg.is-mine .mj-bubble{border-radius:18px 18px 5px 18px}
+.mj-chat-section .mj-app[data-bubble="cloud"] .mj-bubble{border-radius:34px 28px 34px 12px;box-shadow:0 5px 16px #11482a18}
+.mj-chat-section .mj-app[data-bubble="cloud"] .mj-msg.is-mine .mj-bubble{border-radius:30px 35px 12px 34px}
+.mj-chat-section .mj-app[data-bubble="comic"] .mj-bubble{border:2px solid #244539;border-radius:17px 17px 17px 2px;box-shadow:3px 4px 0 #2445391e;font-weight:600}
+.mj-chat-section .mj-app[data-bubble="comic"] .mj-msg.is-mine .mj-bubble{border-radius:17px 17px 2px 17px;border-color:#184a38}
+.mj-chat-section .mj-app[data-bubble="pill"] .mj-bubble{border-radius:32px;padding:13px 20px}
+.mj-chat-section .mj-app[data-bubble="glass"] .mj-bubble{border-radius:19px;background:#f5faf7ba;backdrop-filter:blur(9px);border:1px solid #c9e0d0;box-shadow:0 6px 22px #114a2416}
+.mj-chat-section .mj-app[data-bubble="glass"] .mj-msg.is-mine .mj-bubble{background:var(--mj-accent);border:1px solid #ffffff55;box-shadow:0 7px 18px #1b634331}
+.mj-chat-section .mj-mic{font-size:1.18rem;min-height:45px;min-width:45px;display:grid;place-items:center;flex:0 0 auto}
+.mj-chat-section #mjVoiceTimer{color:#af4037;font-size:.78rem;font-weight:800;white-space:nowrap}
+.mj-chat-section .mj-voice-bubble{display:flex;align-items:center;gap:12px;min-width:175px}
+.mj-chat-section .mj-voice-play{border:0;background:#ffffffb8;color:#1c5c47;border-radius:50%;width:34px;height:34px;display:grid;place-items:center}
+.mj-chat-section .mj-voice-bubble audio{max-width:min(230px,48vw);height:38px}
+.mj-chat-section .mj-voice-bubble audio[hidden]{display:none}
+@media(max-width:650px){.mj-chat-section .mj-compose{flex-wrap:wrap}.mj-chat-section .mj-compose textarea{flex-basis:100%}.mj-chat-section .mj-mic{flex:0 0 auto}}
