@@ -86,7 +86,7 @@
   }
   async function clearSession() {
     state.me=null; state.profile=null; state.contact=null; state.latest.clear();
-    state.people=[]; state.signedIn=false; state.blocked.clear(); state.blockedBy.clear();
+    state.people=[]; readState.clear();unreadCounts.clear();updateUnreadUI(); state.signedIn=false; state.blocked.clear(); state.blockedBy.clear();
     if(state.channel) { await client.removeChannel(state.channel); state.channel=null; }
     signedOutUI();
   }
@@ -122,7 +122,7 @@
       $("mjMeName").textContent=state.profile.display_name;
       $("mjMeHandle").textContent="@"+state.profile.username;
       applyTheme(state.profile.theme_color||"#176c4b");
-      await Promise.all([loadBlocks(),loadPeople()]);
+      await Promise.all([loadBlocks(),loadPeople(),refreshReadState()]);
       subscribeToMessages();
       showChatMessage("");
     } catch(error) {
@@ -139,7 +139,7 @@
   }
   $("mjProfileSettings").addEventListener("click",()=>{
     $("mjProfilePanel").hidden=!$("mjProfilePanel").hidden;
-    if(!$("mjProfilePanel").hidden) $("mjMyColor").value=state.profile?.theme_color||"#176c4b";
+    if(!$("mjProfilePanel").hidden){$("mjMyColor").value=state.profile?.theme_color||"#176c4b";$("mjMyNickname").value=state.profile?.display_name||"";}
   });
   $("mjMyColor").addEventListener("change",async(e)=>{
     if(!state.me||!state.profile)return;
@@ -167,6 +167,56 @@
       showChatMessage("Foto de perfil guardada.");
     }catch(error){showChatMessage("No se pudo guardar la foto: "+explain(error),true);}
     finally{btn.disabled=false;e.target.value="";}
+  });
+
+  const readState = new Map();
+  const unreadCounts = new Map();
+  let notificationsEnabled = false;
+  function updateUnreadUI(){
+    let total=0;unreadCounts.forEach(n=>total+=n);
+    $("mjUnreadTotal").textContent=total?total+" sin leer":"Al día";
+    document.title=(total?"("+total+") ":"")+"Mi Maestro Jesús";
+  }
+  async function refreshReadState(){
+    if(!state.me)return;
+    const {data,error}=await client.from("mj_read_state").select("peer_id,last_read_id").eq("user_id",state.me);
+    if(!error){readState.clear();(data||[]).forEach(x=>readState.set(x.peer_id,Number(x.last_read_id)));await refreshUnread();}
+  }
+  async function refreshUnread(){
+    if(!state.me)return;
+    const {data,error}=await client.from("mj_messages").select("id,sender_id").eq("recipient_id",state.me).order("id",{ascending:false}).limit(500);
+    if(error)return;
+    unreadCounts.clear();
+    (data||[]).forEach(x=>{if(Number(x.id)>(readState.get(x.sender_id)||0))unreadCounts.set(x.sender_id,(unreadCounts.get(x.sender_id)||0)+1)});
+    if(state.contact)unreadCounts.delete(state.contact.id);
+    updateUnreadUI();renderPeople();
+  }
+  async function markRead(contactId){
+    if(!state.me||!contactId)return;
+    const {data,error}=await client.from("mj_messages").select("id").eq("recipient_id",state.me).eq("sender_id",contactId).order("id",{ascending:false}).limit(1);
+    if(error||!data?.length)return;
+    const last=Number(data[0].id);
+    if(last<=(readState.get(contactId)||0))return;
+    const {error:saveError}=await client.from("mj_read_state").upsert({user_id:state.me,peer_id:contactId,last_read_id:last,updated_at:new Date().toISOString()},{onConflict:"user_id,peer_id"});
+    if(!saveError){readState.set(contactId,last);unreadCounts.delete(contactId);updateUnreadUI();renderPeople();}
+  }
+  $("mjNotify").addEventListener("click",async()=>{
+    if(!("Notification" in window)){showChatMessage("Este navegador no permite notificaciones.",true);return;}
+    const result=await Notification.requestPermission();
+    notificationsEnabled=result==="granted";
+    $("mjNotify").textContent=notificationsEnabled?"🔔 ✓":"🔕";
+    showChatMessage(notificationsEnabled?"Avisos del navegador activados.":"No se han activado los avisos.",!notificationsEnabled);
+  });
+  $("mjSaveNickname").addEventListener("click",async()=>{
+    if(!state.me||!state.profile)return;
+    const name=$("mjMyNickname").value.trim();
+    if(name.length<2||name.length>40){showChatMessage("El apodo debe tener entre 2 y 40 caracteres.",true);return;}
+    const {error}=await client.from("mj_profiles").update({display_name:name}).eq("id",state.me);
+    if(error){showChatMessage("No se pudo guardar el apodo: "+explain(error),true);return;}
+    state.profile.display_name=name;
+    $("mjMeName").textContent=name;
+    $("mjMeAvatar").replaceChildren(avatar(state.profile));
+    showChatMessage("Apodo actualizado.");
   });
   async function loadBlocks() {
     if(!state.me)return;
@@ -238,6 +288,8 @@
       texts.append(name,preview);btn.append(texts);
       if(latest){const at=document.createElement("time");at.className="mj-person-time";
         at.textContent=dateOf(latest.created_at);btn.append(at);}
+      const unread=unreadCounts.get(person.id)||0;
+      if(unread){const pill=document.createElement("span");pill.className="mj-unread-badge";pill.textContent=unread>99?"99+":String(unread);btn.append(pill);}
       btn.addEventListener("click",()=>selectContact(person));list.append(btn);
     });
   }
@@ -261,6 +313,7 @@
     state.messageIds.clear();state.oldestId=null;
     renderPeople();updateComposer();
     await loadConversation();
+    await markRead(person.id);
   }
   function updateComposer() {
     const contact=state.contact, blocked=contact && state.blocked.has(contact.id);
@@ -383,6 +436,15 @@
         if(row.sender_id!==state.me&&row.recipient_id!==state.me)return;
         addMessage(row);
         const id=row.sender_id===state.me?row.recipient_id:row.sender_id;
+        if(row.recipient_id===state.me){
+          if(state.contact?.id===id && !document.hidden)markRead(id);
+          else {unreadCounts.set(id,(unreadCounts.get(id)||0)+1);updateUnreadUI();}
+          if(notificationsEnabled && (document.hidden||state.contact?.id!==id) && Notification.permission==="granted"){
+            const person=state.people.find(p=>p.id===id);
+            const n=new Notification("Nuevo mensaje · "+(person?.display_name||"Mi Maestro Jesús"),{body:"Tienes un mensaje nuevo.",tag:"mj-message-"+id});
+            n.onclick=()=>{window.focus();document.getElementById("mensajes")?.scrollIntoView();if(person)selectContact(person);n.close();};
+          }
+        }
         const prior=state.latest.get(id);
         if(!prior||Number(row.id)>Number(prior.id))state.latest.set(id,row);
         renderPeople();
