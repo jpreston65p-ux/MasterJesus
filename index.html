@@ -1079,7 +1079,7 @@
   </style>
 
 
-  <link rel="stylesheet" href="./mensajes.css?v=1">
+  <link rel="stylesheet" href="./mensajes.css?v=2">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -1102,7 +1102,6 @@
         <a href="#articulos">Artículos</a>
         <a href="#galeria">Galería</a>
         <a href="#nosotros">Sobre nosotros</a>
-        <a href="#comentarios">Comentarios</a>
         <a href="#mensajes">Mensajes</a>
         <a href="#contacto">Contacto</a>
       </nav>
@@ -1262,8 +1261,15 @@
             <aside class="mj-side" aria-label="Contactos de mensajes">
               <div class="mj-side-head">
                 <div class="mj-me"><span id="mjMeAvatar"></span><div class="mj-me-info"><strong id="mjMeName">Mi perfil</strong><small id="mjMeHandle"></small></div>
+                  <button type="button" class="mj-muted-btn" id="mjProfileSettings" aria-controls="mjProfilePanel" aria-label="Personalizar perfil" title="Personalizar perfil">⚙</button>
                   <button type="button" class="mj-muted-btn" id="mjLogout" title="Cerrar sesión">Salir</button>
                 </div>
+              </div>
+              <div class="mj-profile-panel" id="mjProfilePanel" hidden>
+                <label for="mjMyPhoto">Foto de perfil</label>
+                <input id="mjMyPhoto" type="file" accept="image/png,image/jpeg,image/webp">
+                <div class="mj-color-options"><label for="mjMyColor" style="margin:0">Color de tus mensajes</label><input id="mjMyColor" type="color" value="#176c4b"></div>
+                <p>La imagen debe pesar menos de 2 MB. Tu foto y color se guardan en tu perfil.</p>
               </div>
               <div class="mj-side-search"><label for="mjFind" style="display:block;color:#4a6b55;font-weight:700;font-size:.82rem;margin-bottom:8px">Buscar personas</label><input class="mj-find" id="mjFind" type="search" maxlength="40" placeholder="Busca por nombre de usuario…" autocomplete="off"></div>
               <div class="mj-small-heading">Conversaciones y comunidad <button type="button" class="mj-muted-btn" id="mjRefreshPeople" aria-label="Actualizar conversaciones" title="Actualizar" style="float:right;padding:3px 9px">↻</button></div>
@@ -1296,37 +1302,7 @@
       </div>
     </section>
 
-    <section class="comments anchor-target" id="comentarios" aria-label="Sección de comentarios">
-      <div class="container">
-        <p class="section-kicker">Comunidad</p>
-        <h2 class="comments-title">Comparte tu reflexión</h2>
-        <p class="comments-subtitle">Tu voz enriquece nuestra comunidad. Deja un comentario, una pregunta o un versículo que te haya tocado el corazón hoy.</p>
 
-        <form class="comment-form" id="commentForm" autocomplete="off">
-          <div class="form-row">
-            <label for="commentName">Nombre</label>
-            <input type="text" id="commentName" name="name" placeholder="Tu nombre o apodo" maxlength="40" required>
-          </div>
-          <div class="form-row">
-            <label for="commentText">Comentario</label>
-            <textarea id="commentText" name="comment" rows="4" placeholder="Escribe aquí tu reflexión..." maxlength="500" required></textarea>
-            <div class="char-counter"><span id="charCount">0</span>/500</div>
-          </div>
-          <button type="submit" class="primary-btn comment-submit">
-            Publicar comentario
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-          </button>
-          <p class="form-hint" role="note">Tus comentarios se guardan en este dispositivo. Sé amable y respetuoso.</p>
-        </form>
-
-        <div class="comments-header">
-          <h3>Comentarios recientes</h3>
-          <span class="comments-count" id="commentsCount">0 comentarios</span>
-        </div>
-        <ul class="comments-list" id="commentsList" aria-live="polite"></ul>
-        <p class="comments-empty" id="commentsEmpty">Sé el primero en compartir una reflexión.</p>
-      </div>
-    </section>
   </main>
 
 
@@ -1366,6 +1342,7 @@
         </div>
       </div>
     </div>
+    <p class="mj-credit" style="text-align:center;color:#d8e8db;font-size:.88rem;padding:10px 16px 22px;margin:0">Creado por Tatiana</p>
   </footer>
 
   <dialog id="articleDialog" aria-labelledby="dialogTitle">
@@ -1624,6 +1601,6 @@
     }());
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script defer src="./mensajes.js?v=3"></script>
+  <script defer src="./mensajes.js?v=4"></script>
 </body>
 </html>
