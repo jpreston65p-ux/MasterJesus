@@ -43,7 +43,11 @@
   function initials(name) { return (name || "?").trim().charAt(0).toUpperCase(); }
   function avatar(name) {
     const el = document.createElement("span"); el.className = "mj-avatar";
-    el.textContent = initials(name); return el;
+    const p=typeof name==="string" ? {display_name:name} : (name||{});
+    el.textContent = initials(p.display_name);
+    if(p.theme_color && /^#[0-9a-f]{6}$/i.test(p.theme_color))el.style.background=p.theme_color;
+    if(p.avatar_url && p.avatar_url.startsWith(SUPABASE_URL+"/storage/v1/object/public/mj-avatars/")){const img=document.createElement("img");img.src=p.avatar_url;img.alt="";img.loading="lazy";el.replaceChildren(img);}
+    return el;
   }
   function timeOf(date) {
     try { return new Date(date).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }); }
@@ -88,7 +92,7 @@
   }
   async function ensureProfile(user) {
     const {data: existing,error: readError}=await client.from("mj_profiles")
-      .select("id,username,display_name").eq("id",user.id).maybeSingle();
+      .select("id,username,display_name,avatar_url,theme_color").eq("id",user.id).maybeSingle();
     if(readError) throw readError;
     if(existing) return existing;
     const meta=user.user_metadata||{};
@@ -96,11 +100,11 @@
     const username=/^[a-z0-9_]{3,24}$/.test(suggested) ? suggested : "usuario_"+user.id.replace(/-/g,"").slice(0,12);
     const display_name=String(meta.display_name||"").trim().slice(0,40)||"Mi perfil";
     let result=await client.from("mj_profiles").insert({id:user.id,username,display_name})
-      .select("id,username,display_name").single();
+      .select("id,username,display_name,avatar_url,theme_color").single();
     if(result.error && result.error.code==="23505") {
       result=await client.from("mj_profiles").insert({
         id:user.id, username:"usuario_"+user.id.replace(/-/g,"").slice(0,12),display_name
-      }).select("id,username,display_name").single();
+      }).select("id,username,display_name,avatar_url,theme_color").single();
     }
     if(result.error) throw result.error;
     return result.data;
@@ -114,9 +118,10 @@
     try {
       state.profile=await ensureProfile(data.user);
       state.signedIn=true; authCard.hidden=true; chatApp.hidden=false;
-      $("mjMeAvatar").replaceChildren(avatar(state.profile.display_name));
+      $("mjMeAvatar").replaceChildren(avatar(state.profile));
       $("mjMeName").textContent=state.profile.display_name;
       $("mjMeHandle").textContent="@"+state.profile.username;
+      applyTheme(state.profile.theme_color||"#176c4b");
       await Promise.all([loadBlocks(),loadPeople()]);
       subscribeToMessages();
       showChatMessage("");
@@ -125,6 +130,44 @@
       authCard.hidden=false; chatApp.hidden=true; state.signedIn=false;
     }
   }
+
+  function applyTheme(color){
+    const c=/^#[0-9a-fA-F]{6}$/.test(color||"")?color:"#176c4b";
+    chatApp.style.setProperty("--mj-accent",c);
+    $("mjMyColor").value=c;
+    $("mjMeAvatar").replaceChildren(avatar(state.profile));
+  }
+  $("mjProfileSettings").addEventListener("click",()=>{
+    $("mjProfilePanel").hidden=!$("mjProfilePanel").hidden;
+    if(!$("mjProfilePanel").hidden) $("mjMyColor").value=state.profile?.theme_color||"#176c4b";
+  });
+  $("mjMyColor").addEventListener("change",async(e)=>{
+    if(!state.me||!state.profile)return;
+    const color=e.target.value;
+    if(!/^#[0-9a-fA-F]{6}$/.test(color))return;
+    const {error}=await client.from("mj_profiles").update({theme_color:color}).eq("id",state.me);
+    if(error){showChatMessage("No se guardó el color: "+explain(error),true);return;}
+    state.profile.theme_color=color;applyTheme(color);showChatMessage("Color guardado.");
+  });
+  $("mjMyPhoto").addEventListener("change",async(e)=>{
+    const file=e.target.files?.[0];if(!file||!state.me||!state.profile)return;
+    if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>2097152){
+      showChatMessage("Selecciona una foto JPG, PNG o WebP de máximo 2 MB.",true);e.target.value="";return;
+    }
+    const btn=$("mjProfileSettings");btn.disabled=true;showChatMessage("Guardando foto de perfil…");
+    try{
+      const ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp"}[file.type];
+      const path=state.me+"/avatar-"+crypto.randomUUID()+"."+ext;
+      const {error:uploadError}=await client.storage.from("mj-avatars").upload(path,file,{contentType:file.type,upsert:false});
+      if(uploadError)throw uploadError;
+      const {data}=client.storage.from("mj-avatars").getPublicUrl(path);
+      const {error:saveError}=await client.from("mj_profiles").update({avatar_url:data.publicUrl}).eq("id",state.me);
+      if(saveError)throw saveError;
+      state.profile.avatar_url=data.publicUrl;applyTheme(state.profile.theme_color);
+      showChatMessage("Foto de perfil guardada.");
+    }catch(error){showChatMessage("No se pudo guardar la foto: "+explain(error),true);}
+    finally{btn.disabled=false;e.target.value="";}
+  });
   async function loadBlocks() {
     if(!state.me)return;
     const id=state.me;
@@ -151,7 +194,7 @@
       const other=row.sender_id===id?row.recipient_id:row.sender_id;
       if(!unique.has(other)){unique.add(other);state.latest.set(other,row);}
     });
-    let query=client.from("mj_profiles").select("id,username,display_name").neq("id",id).order("username").limit(80);
+    let query=client.from("mj_profiles").select("id,username,display_name,avatar_url,theme_color").neq("id",id).order("username").limit(80);
     const clean=filter.trim().toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,24);
     if(clean.length>=2)query=query.ilike("username","%"+clean+"%");
     const {data:people,error}=await query;
@@ -159,7 +202,7 @@
     if(error){showChatMessage(explain(error),true);return;}
     const lookup=new Map((people||[]).map(p=>[p.id,p]));
     if(unique.size) {
-      const {data:past}=await client.from("mj_profiles").select("id,username,display_name").in("id",[...unique].slice(0,300));
+      const {data:past}=await client.from("mj_profiles").select("id,username,display_name,avatar_url,theme_color").in("id",[...unique].slice(0,300));
       (past||[]).forEach(p=>lookup.set(p.id,p));
     }
     let list=[...lookup.values()];
@@ -187,7 +230,7 @@
     state.people.forEach(person=>{
       const btn=document.createElement("button");btn.type="button";btn.className="mj-person";
       if(state.contact?.id===person.id)btn.classList.add("is-selected");
-      btn.append(avatar(person.display_name));
+      btn.append(avatar(person));
       const texts=document.createElement("span");texts.className="mj-person-copy";
       const name=document.createElement("strong");name.textContent=person.display_name;
       const preview=document.createElement("small");const latest=state.latest.get(person.id);
@@ -207,7 +250,7 @@
   async function selectContact(person) {
     state.contact=person; state.loadNumber++;
     chatApp.classList.add("mj-show-thread");
-    $("mjPartnerAvatar").replaceChildren(avatar(person.display_name));
+    $("mjPartnerAvatar").replaceChildren(avatar(person));
     $("mjPartnerName").textContent=person.display_name;
     $("mjPartnerHandle").textContent="@"+person.username;
     if ($("mjThreadHint")) $("mjThreadHint").hidden=true;
