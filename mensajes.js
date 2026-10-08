@@ -458,7 +458,8 @@
   $("mjVoiceButton").addEventListener("click",async()=>{
     if(recorder){stopRecording();return;}
     if(!state.contact||!state.me||state.blocked.has(state.contact.id)||state.blockedBy.has(state.contact.id))return;
-    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){showChatMessage("Este navegador no permite grabar audio.",true);return;}
+    if(!window.isSecureContext){showChatMessage("El micrófono necesita una conexión HTTPS segura. Abre la página original de MasterJesus.",true);return;}
+    if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){showChatMessage("Este navegador no permite grabar audio. Intenta abrir MasterJesus directamente en Chrome o Firefox.",true);return;}
     const formats=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg"];
     const mime=formats.find(x=>MediaRecorder.isTypeSupported(x));
     if(!mime){showChatMessage("Tu navegador no ofrece un formato de audio compatible.",true);return;}
@@ -503,7 +504,23 @@
         $("mjVoiceTimer").textContent="🔴 "+secondsText(elapsed);
         if(elapsed>=VOICE_MAX_SECONDS)stopRecording();
       },300);
-    }catch(error){recordStream?.getTracks().forEach(x=>x.stop());recordStream=null;showChatMessage("No se pudo acceder al micrófono: "+explain(error),true);}
+    }catch(error){
+      recordStream?.getTracks().forEach(x=>x.stop());recordStream=null;
+      const type=error?.name||"";
+      let message;
+      if(type==="NotAllowedError"||type==="PermissionDeniedError"||type==="SecurityError"){
+        message="El micrófono está bloqueado. Permite el acceso desde el candado o ajustes del navegador y vuelve a probar.";
+      }else if(type==="NotFoundError"||type==="DevicesNotFoundError"){
+        message="No se encontró un micrófono conectado. Revisa el dispositivo de entrada.";
+      }else if(type==="NotReadableError"||type==="TrackStartError"){
+        message="El micrófono está ocupado o no se puede iniciar. Cierra otras aplicaciones que lo estén usando.";
+      }else if(type==="OverconstrainedError"){
+        message="El micrófono no admite esta configuración. Prueba con otro dispositivo.";
+      }else{
+        message="No se pudo iniciar la grabación: "+String(error?.message||"Error desconocido");
+      }
+      showChatMessage(message,true);
+    }
   });
   $("mjCompose").addEventListener("submit",async(event)=>{
     event.preventDefault();
