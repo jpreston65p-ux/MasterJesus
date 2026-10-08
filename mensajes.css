@@ -132,3 +132,35 @@
 .mj-chat-section .mj-voice-cancel{color:#a53c36;border-color:#f2cfc8;font-weight:750}
 .mj-chat-section .mj-shape-select{font-weight:750;cursor:pointer}
 .mj-chat-section .mj-profile-panel label[for="mjBubbleStyle"]{margin-top:13px}
+
+
+/* v9: the composer is structurally separate from the scrollable message list. */
+.mj-chat-section .mj-app{min-height:0;overflow:hidden}
+.mj-chat-section .mj-thread{min-height:0;min-width:0;overflow:hidden}
+.mj-chat-section .mj-messages{flex:1 1 0%;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.mj-chat-section .mj-msg{min-width:0;max-width:min(76%,540px)}
+.mj-chat-section .mj-msg .mj-bubble{max-width:100%;overflow-wrap:anywhere}
+.mj-chat-section .mj-voice-msg{max-width:min(80%,400px)}
+.mj-chat-section .mj-voice-bubble{min-width:0;max-width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.mj-chat-section .mj-voice-bubble audio{display:block;min-width:0;width:min(260px,100%);max-width:100%;height:40px}
+.mj-chat-section .mj-voice-bubble audio[hidden]{display:none}
+.mj-chat-section .mj-compose{position:relative;flex:0 0 auto;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:12px 17px;background:#fff;z-index:2}
+.mj-chat-section .mj-compose-input,.mj-chat-section .mj-compose-toolbar{width:100%;min-width:0}
+.mj-chat-section .mj-compose-input textarea{display:block;width:100%;min-width:0;max-width:100%;min-height:55px;max-height:105px;resize:vertical;padding:12px 13px}
+.mj-chat-section .mj-compose-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mj-chat-section .mj-compose-voice{display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0;flex-wrap:wrap}
+.mj-chat-section .mj-compose-toolbar .mj-primary{flex:0 0 auto;min-height:43px}
+.mj-chat-section #mjVoiceTimer{font-size:.78rem;white-space:nowrap}
+.mj-chat-section .mj-status{flex:0 0 auto;max-height:80px;overflow:auto;overflow-wrap:anywhere;padding:7px 17px}
+.mj-chat-section .mj-status:empty{display:none}
+.mj-chat-section .mj-composer-help{flex:0 0 auto;max-height:55px;overflow:auto;padding:0 17px 10px}
+@media(max-width:650px){
+ .mj-chat-section .mj-app{height:min(680px,78dvh);min-height:470px}
+ .mj-chat-section .mj-thread{inset:0;min-height:0}
+ .mj-chat-section .mj-msg{max-width:86%}
+ .mj-chat-section .mj-compose{padding:9px 11px}
+ .mj-chat-section .mj-compose-toolbar{flex-wrap:nowrap}
+ .mj-chat-section .mj-compose-voice{flex-wrap:wrap}
+ .mj-chat-section .mj-voice-msg{max-width:90%}
+ .mj-chat-section .mj-voice-bubble audio{width:min(220px,100%)}
+}
