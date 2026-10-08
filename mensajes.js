@@ -30,9 +30,9 @@
   }
   function explain(error) {
     const message = String((error && error.message) || error || "");
-    if (/invalid login credentials/i.test(message)) return "Correo o contraseña incorrectos.";
-    if (/email not confirmed/i.test(message)) return "Confirma tu correo electrónico antes de entrar.";
-    if (/already registered|already been registered/i.test(message)) return "Ese correo ya tiene una cuenta. Intenta iniciar sesión.";
+    if (/invalid login credentials/i.test(message)) return "Apodo o contraseña incorrectos.";
+    
+    
     if (/password should be at least|password.*6 characters/i.test(message)) return "La contraseña debe contener al menos 6 caracteres.";
     if (/rate limit|too many requests|email rate/i.test(message)) return "Se realizaron demasiados intentos. Prueba más tarde.";
     if (/duplicate key|unique constraint|23505/i.test(message)) return "El nombre de usuario está ocupado. Elige otro.";
@@ -53,84 +53,62 @@
     try { return new Date(date).toLocaleDateString("es", { day:"numeric", month:"short" }); }
     catch (_) { return ""; }
   }
+
+  const NICKNAME_DOMAIN="users.masterjesus.invalid";
+  const REGISTER_ENDPOINT=SUPABASE_URL+"/functions/v1/mj-register-nickname";
   function setMode(mode) {
-    $("mjLoginTab").setAttribute("aria-selected", String(mode === "login"));
-    $("mjSignupTab").setAttribute("aria-selected", String(mode === "signup"));
-    $("mjLoginForm").hidden = mode !== "login";
-    $("mjSignupForm").hidden = mode !== "signup";
-    $("mjResetForm").hidden = mode !== "reset";
-    $("mjNewPasswordForm").hidden = mode !== "newpassword";
+    $("mjLoginTab").setAttribute("aria-selected",String(mode==="login"));
+    $("mjSignupTab").setAttribute("aria-selected",String(mode==="signup"));
+    $("mjLoginForm").hidden=mode!=="login";
+    $("mjSignupForm").hidden=mode!=="signup";
     showAuthMessage("");
   }
-  $("mjLoginTab").addEventListener("click", () => setMode("login"));
-  $("mjSignupTab").addEventListener("click", () => setMode("signup"));
-  $("mjForgot").addEventListener("click", () => { setMode("reset"); $("mjResetEmail").value = $("mjLoginEmail").value.trim(); });
-  $("mjBackLogin").addEventListener("click", () => setMode("login"));
-  function buttonBusy(form, busy) {
-    const btn = form.querySelector('button[type="submit"]');
-    if (btn) btn.disabled = busy;
+  $("mjLoginTab").addEventListener("click",()=>setMode("login"));
+  $("mjSignupTab").addEventListener("click",()=>setMode("signup"));
+  function buttonBusy(form,busy){
+    const btn=form.querySelector('button[type="submit"]');
+    if(btn)btn.disabled=busy;
   }
-  $("mjLoginForm").addEventListener("submit", async (event) => {
+  $("mjLoginForm").addEventListener("submit",async event=>{
     event.preventDefault();
-    const form = event.currentTarget;
-    buttonBusy(form, true); showAuthMessage("Comprobando tu cuenta…");
-    try {
-      const email = $("mjLoginEmail").value.trim();
-      const password = $("mjLoginPassword").value;
-      const { error } = await client.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+    const form=event.currentTarget; buttonBusy(form,true);
+    showAuthMessage("Iniciando sesión…");
+    try{
+      const nickname=$("mjLoginNickname").value.trim().toLowerCase();
+      if(!/^[a-z0-9_]{3,24}$/.test(nickname))throw Error("Escribe un apodo válido.");
+      const password=$("mjLoginPassword").value;
+      const {error}=await client.auth.signInWithPassword({email:nickname+"@"+NICKNAME_DOMAIN,password});
+      if(error)throw Error("Apodo o contraseña incorrectos.");
       await loadSession();
-    } catch (error) { showAuthMessage(explain(error), true); }
-    finally { buttonBusy(form, false); }
-  });
-  $("mjSignupForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    buttonBusy(form, true); showAuthMessage("Creando tu cuenta…");
-    try {
-      const email = $("mjSignupEmail").value.trim();
-      const password = $("mjSignupPassword").value;
-      const username = $("mjSignupUsername").value.trim().toLowerCase();
-      const display_name = $("mjSignupName").value.trim();
-      if (!/^[a-z0-9_]{3,24}$/.test(username)) throw Error("Tu usuario debe tener entre 3 y 24 letras minúsculas, números o guiones bajos.");
-      if (display_name.length < 2 || display_name.length > 40) throw Error("Tu nombre visible debe tener entre 2 y 40 caracteres.");
-      if (password.length < 6) throw Error("La contraseña debe tener al menos 6 caracteres.");
-      const redirectTo = window.location.origin + window.location.pathname + "#mensajes";
-      const { data, error } = await client.auth.signUp({ email, password, options: {
-        emailRedirectTo: redirectTo, data: { username, display_name }
-      } });
-      if (error) throw error;
-      if (data && data.session) {
-        await loadSession();
-      } else {
-        showAuthMessage("Revisa tu correo y abre el enlace de confirmación. Después vuelve a esta página para entrar.");
-      }
-    } catch (error) { showAuthMessage(explain(error), true); }
-    finally { buttonBusy(form, false); }
-  });
-  $("mjResetForm").addEventListener("submit", async (event) => {
-    event.preventDefault(); const form=event.currentTarget; buttonBusy(form,true);
-    try {
-      const redirectTo = window.location.origin + window.location.pathname + "#mensajes";
-      const { error }=await client.auth.resetPasswordForEmail($("mjResetEmail").value.trim(), { redirectTo });
-      if (error) throw error;
-      showAuthMessage("Si el correo existe, recibirás instrucciones para recuperar tu contraseña.");
-    } catch(error){ showAuthMessage(explain(error),true); }
-    finally{ buttonBusy(form,false); }
-  });
-  $("mjNewPasswordForm").addEventListener("submit", async(event) => {
-    event.preventDefault(); const form=event.currentTarget; buttonBusy(form,true);
-    try {
-      const password=$("mjNewPassword").value;
-      if(password.length<6) throw Error("Utiliza una contraseña de al menos 6 caracteres.");
-      const { error }=await client.auth.updateUser({password}); if(error) throw error;
-      showAuthMessage("Contraseña actualizada. Ya puedes usar tu cuenta.");
-      setMode("login");
-      await loadSession();
-    } catch(error){showAuthMessage(explain(error),true);}
+    }catch(error){showAuthMessage(explain(error),true);}
     finally{buttonBusy(form,false);}
   });
-  $("mjLogout").addEventListener("click", async () => {
+  $("mjSignupForm").addEventListener("submit",async event=>{
+    event.preventDefault(); const form=event.currentTarget;
+    buttonBusy(form,true); showAuthMessage("Creando tu cuenta…");
+    try{
+      const username=$("mjSignupUsername").value.trim().toLowerCase();
+      const display_name=$("mjSignupName").value.trim();
+      const password=$("mjSignupPassword").value;
+      if(!/^[a-z0-9_]{3,24}$/.test(username))throw Error("El apodo debe tener entre 3 y 24 letras, números o guiones bajos.");
+      if(display_name.length<2||display_name.length>40)throw Error("El nombre visible debe tener entre 2 y 40 caracteres.");
+      if(password.length<10||password.length>128)throw Error("Utiliza una contraseña de 10 a 128 caracteres.");
+      const response=await fetch(REGISTER_ENDPOINT,{
+        method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_PUBLISHABLE_KEY},
+        body:JSON.stringify({username,display_name,password})
+      });
+      const result=await response.json().catch(()=>({error:"Respuesta inválida del servidor."}));
+      if(!response.ok||!result.ok)throw Error(result.error||"No se pudo crear tu cuenta.");
+      const {error}=await client.auth.signInWithPassword({
+        email:username+"@"+NICKNAME_DOMAIN,password
+      });
+      if(error)throw Error("Cuenta creada. Entra con tu apodo y contraseña.");
+      $("mjSignupPassword").value="";
+      await loadSession();
+    }catch(error){showAuthMessage(explain(error),true);}
+    finally{buttonBusy(form,false);}
+  });
+    $("mjLogout").addEventListener("click", async () => {
     try { await client.auth.signOut(); await clearSession(); } catch(error){showChatMessage(explain(error),true);}
   });
   function signedOutUI() {
@@ -409,13 +387,9 @@
       });
   }
   client.auth.onAuthStateChange((event)=>{
-    if(event==="PASSWORD_RECOVERY"){
-      authCard.hidden=false;chatApp.hidden=true;setMode("newpassword");
-      showAuthMessage("Escribe tu contraseña nueva para recuperar la cuenta.");
-    }else if(event==="SIGNED_OUT"){
+    if(event==="SIGNED_OUT") {
       queueMicrotask(()=>clearSession());
-    }else if(event==="SIGNED_IN"||event==="TOKEN_REFRESHED"){
-      // Do not call other Supabase functions synchronously inside the auth callback.
+    } else if(event==="SIGNED_IN"||event==="TOKEN_REFRESHED") {
       queueMicrotask(()=>loadSession());
     }
   });
