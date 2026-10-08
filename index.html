@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
+  <meta name="mj-chat-version" content="8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Mi Maestro Jesús: educación cristiana, valores y aprendizaje al servicio de la comunidad.">
   <meta name="theme-color" content="#0c4b3d">
@@ -1079,7 +1080,7 @@
   </style>
 
 
-  <link rel="stylesheet" href="./mensajes.css?v=7">
+  <link rel="stylesheet" href="./mensajes.css?v=8">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -1242,8 +1243,9 @@
       <div class="container">
         <div class="mj-intro">
           <p class="mj-eyebrow">✉ Comunidad · Mensajes privados</p>
-          <h2 id="mjHeading">Conversemos con respeto</h2>
+          <h2 id="mjHeading">Mensajes con personalidad 💬</h2>
           <p>Un espacio para conectar, compartir ideas y acompañarnos. Tus conversaciones permanecen guardadas y solo los participantes pueden verlas.</p>
+          <div class="mj-updates" aria-label="Novedades de los mensajes"><span>🌈 Avatares únicos</span><span>☁️ Nubes</span><span>💬 Cómic</span><span>🟣 Cápsulas</span><span>✨ Cristal</span><span>🎙️ Mensajes de voz</span></div>
         </div>
         <div class="mj-shell">
           <div class="mj-auth" id="mjAuth">
@@ -1271,8 +1273,8 @@
                 <label for="mjMyPhoto">Foto de perfil</label>
                 <input id="mjMyPhoto" type="file" accept="image/png,image/jpeg,image/webp">
                 <div class="mj-color-options"><label for="mjMyColor" style="margin:0">Color de tus mensajes</label><input id="mjMyColor" type="color" value="#176c4b"></div>
-                <label for="mjBubbleStyle">Forma de tus burbujas</label><select id="mjBubbleStyle" class="mj-shape-select"><option value="rounded">Redondeadas</option><option value="cloud">Nubes ☁️</option><option value="comic">Cómic 💬</option><option value="pill">Cápsula</option><option value="glass">Cristal ✨</option></select>
-                <p>La imagen debe pesar menos de 2 MB. Tu foto y color se guardan en tu perfil.</p>
+                <label for="mjBubbleStyle">Elige la forma de tus burbujas</label><select id="mjBubbleStyle" class="mj-shape-select"><option value="rounded">Redondeadas</option><option value="cloud">Nubes ☁️</option><option value="comic">Cómic 💬</option><option value="pill">Cápsula</option><option value="glass">Cristal ✨</option></select>
+                <p>Tu apodo, color y estilo se guardan en tu perfil. La foto puede pesar hasta 2 MB.</p>
               </div>
               <div class="mj-side-search"><label for="mjFind" style="display:block;color:#4a6b55;font-weight:700;font-size:.82rem;margin-bottom:8px">Buscar personas</label><input class="mj-find" id="mjFind" type="search" maxlength="40" placeholder="Busca por nombre de usuario…" autocomplete="off"></div>
               <div class="mj-small-heading">Conversaciones · <span id="mjUnreadTotal" aria-live="polite">0 sin leer</span> <button type="button" class="mj-muted-btn" id="mjNotify" title="Activar avisos en este navegador">🔔</button> <button type="button" class="mj-muted-btn" id="mjRefreshPeople" aria-label="Actualizar conversaciones" title="Actualizar" style="float:right;padding:3px 9px">↻</button></div>
@@ -1296,9 +1298,9 @@
               <form class="mj-compose" id="mjCompose" hidden>
                 <label for="mjText" class="skip-link">Nuevo mensaje</label>
                 <textarea id="mjText" maxlength="2000" rows="1" placeholder="Escribe un mensaje…" required></textarea>
-                <button type="button" class="mj-muted-btn mj-mic" id="mjVoiceButton" title="Grabar mensaje de voz" aria-label="Grabar mensaje de voz">🎙</button><span id="mjVoiceTimer" hidden aria-live="polite"></span><button type="submit" class="mj-primary" id="mjSend">Enviar ➤</button>
+                <button type="button" class="mj-muted-btn mj-mic" id="mjVoiceButton" title="Grabar un audio de hasta 60 segundos" aria-label="Grabar mensaje de voz">🎙️</button><span id="mjVoiceTimer" hidden aria-live="polite"></span><button type="button" class="mj-muted-btn mj-voice-cancel" id="mjVoiceCancel" hidden>Cancelar</button><button type="submit" class="mj-primary" id="mjSend">Enviar ➤</button>
               </form>
-              <small class="mj-composer-help" id="mjSafetyNote" hidden>Enter para enviar · Shift + Enter para una nueva línea · Trata a todos con respeto.</small>
+              <small class="mj-composer-help" id="mjSafetyNote" hidden>Enter para enviar · Shift + Enter para nueva línea · 🎙️ para mensajes de voz de hasta 60 segundos.</small>
             </div>
           </div>
         </div>
@@ -1467,6 +1469,6 @@
     }());
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script defer src="./mensajes.js?v=7"></script>
+  <script defer src="./mensajes.js?v=8"></script>
 </body>
 </html>
