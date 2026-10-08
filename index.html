@@ -1248,28 +1248,15 @@
         </div>
         <div class="mj-shell">
           <div class="mj-auth" id="mjAuth">
-            <div class="mj-auth-badge" aria-hidden="true">✉</div>
-            <h3>Bienvenido a Mensajes</h3>
-            <p class="mj-auth-lead">Entra con tu apodo, sin usar correo electrónico.</p>
-            <div class="mj-tabs" role="tablist" aria-label="Cuenta de mensajes">
-              <button type="button" role="tab" aria-selected="true" id="mjLoginTab">Iniciar sesión</button>
-              <button type="button" role="tab" aria-selected="false" id="mjSignupTab">Crear cuenta</button>
-            </div>
-            <form id="mjLoginForm">
-              <div class="mj-field"><label for="mjLoginNickname">Tu apodo</label><input type="text" id="mjLoginNickname" autocomplete="username" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="ejemplo_usuario" required></div>
-              <div class="mj-field"><label for="mjLoginPassword">Contraseña</label><input type="password" id="mjLoginPassword" autocomplete="current-password" required></div>
-              <button class="mj-primary" type="submit">Entrar a mis mensajes</button>
-              <p style="font-size:.78rem;color:#73877d;text-align:center;margin:12px 0 0">Guarda bien tu contraseña: sin correo no podrás recuperarla automáticamente.</p>
-            </form>
-            <form id="mjSignupForm" hidden>
-              <div class="mj-field"><label for="mjSignupName">Nombre visible</label><input id="mjSignupName" maxlength="40" minlength="2" autocomplete="nickname" placeholder="¿Cómo quieres que te llamen?" required></div>
-              <div class="mj-field"><label for="mjSignupUsername">Nombre de usuario</label><input id="mjSignupUsername" pattern="[A-Za-z0-9_]{3,24}" maxlength="24" autocomplete="off" placeholder="ejemplo_usuario" required></div>
-              
-              <div class="mj-field"><label for="mjSignupPassword">Contraseña</label><input id="mjSignupPassword" type="password" minlength="10" autocomplete="new-password" placeholder="Al menos 6 caracteres" required></div>
-              <button class="mj-primary" type="submit">Crear mi cuenta</button>
+            <div class="mj-auth-badge" aria-hidden="true">💬</div>
+            <h3>¡Entra a conversar!</h3>
+            <p class="mj-auth-lead">Solo escribe tu apodo. Sin correo, sin contraseña y sin crear una cuenta manualmente.</p>
+            <form id="mjGuestForm">
+              <div class="mj-field"><label for="mjGuestNickname">Pon tu apodo</label><input id="mjGuestNickname" type="text" minlength="2" maxlength="40" autocomplete="nickname" placeholder="¿Cómo quieres que te llamen?" required></div>
+              <button class="mj-primary" type="submit">Entrar al chat 💬</button>
             </form>
             <p class="mj-feedback" id="mjAuthFeedback" aria-live="polite"></p>
-            <p style="font-size:.76rem;color:#8b9a91;text-align:center;line-height:1.6;margin:18px 0 0">No compartas contraseñas ni datos personales. Utiliza nombres de usuario sin información privada.</p>
+            <p style="font-size:.77rem;color:#87958b;text-align:center;line-height:1.6;margin:17px 0 0">Tu acceso queda guardado en este navegador. Si borras sus datos o cambias de dispositivo, no podrás recuperar esta sesión sin otro método de acceso.</p>
           </div>
           <div class="mj-app" id="mjApp" hidden>
             <aside class="mj-side" aria-label="Contactos de mensajes">
@@ -1637,6 +1624,6 @@
     }());
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
-  <script defer src="./mensajes.js?v=2"></script>
+  <script defer src="./mensajes.js?v=3"></script>
 </body>
 </html>
